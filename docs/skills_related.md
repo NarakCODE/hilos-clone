@@ -1,0 +1,29 @@
+| MVP Area              | Skill to Search                    | Query Link                                                  | Why it matches                                                               |
+| --------------------- | ---------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Find useful skills    | `find-skills`                      | `https://www.skills.sh/?q=find-skills`                      | Helps discover more agent skills for this project.                           |
+| PRD / planning        | `to-prd`                           | `https://www.skills.sh/?q=to-prd`                           | Good for converting product ideas into PRD/spec format.                      |
+| Issue breakdown       | `to-issues`                        | `https://www.skills.sh/?q=to-issues`                        | Useful to convert PRD/MVP features into GitHub issues.                       |
+| MVP prototype         | `prototype`                        | `https://www.skills.sh/?q=prototype`                        | Good for building early product prototype flows.                             |
+| Frontend UI           | `frontend-design`                  | `https://www.skills.sh/?q=frontend-design`                  | Useful for designing the chat workspace UI.                                  |
+| Next.js best practice | `vercel-react-best-practices`      | `https://www.skills.sh/?q=vercel-react-best-practices`      | Matches the recommended Next.js frontend stack.                              |
+| UI guidelines         | `web-design-guidelines`            | `https://www.skills.sh/?q=web-design-guidelines`            | Helps keep the app UI clean and consistent.                                  |
+| shadcn/ui             | `shadcn`                           | `https://www.skills.sh/?q=shadcn`                           | Matches the UI component direction.                                          |
+| Architecture          | `improve-codebase-architecture`    | `https://www.skills.sh/?q=improve-codebase-architecture`    | Useful for modular monolith planning.                                        |
+| Refactor planning     | `request-refactor-plan`            | `https://www.skills.sh/?q=request-refactor-plan`            | Useful when improving codebase structure step by step.                       |
+| Code review           | `review`                           | `https://www.skills.sh/?q=review`                           | Useful for reviewing implementation quality.                                 |
+| Code review workflow  | `requesting-code-review`           | `https://www.skills.sh/?q=requesting-code-review`           | Helps create a review process for agent-generated work.                      |
+| Testing               | `tdd`                              | `https://www.skills.sh/?q=tdd`                              | Good for backend and frontend feature implementation.                        |
+| Web app testing       | `webapp-testing`                   | `https://www.skills.sh/?q=webapp-testing`                   | Useful for testing chat, auth, rooms, and GitHub flows.                      |
+| QA                    | `qa`                               | `https://www.skills.sh/?q=qa`                               | Helps generate QA scenarios and acceptance checks.                           |
+| Database              | `supabase-postgres-best-practices` | `https://www.skills.sh/?q=supabase-postgres-best-practices` | Not Neon-specific, but still useful for Postgres schema and query practices. |
+| GitHub Actions        | `github-actions-docs`              | `https://www.skills.sh/?q=github-actions-docs`              | Useful for CI/CD pipeline setup.                                             |
+| Deployment            | `deploy-to-vercel`                 | `https://www.skills.sh/?q=deploy-to-vercel`                 | Matches the recommended Vercel frontend deployment.                          |
+| Observability         | `sentry-cli`                       | `https://www.skills.sh/?q=sentry-cli`                       | Useful for error tracking integration.                                       |
+| Agent workflows       | `subagent-driven-development`      | `https://www.skills.sh/?q=subagent-driven-development`      | Highly relevant for human + AI agent room collaboration.                     |
+| Execution process     | `executing-plans`                  | `https://www.skills.sh/?q=executing-plans`                  | Useful after turning the PRD into implementation tasks.                      |
+| Debugging             | `systematic-debugging`             | `https://www.skills.sh/?q=systematic-debugging`             | Useful for backend, realtime, GitHub webhook, and agent-run issues.          |
+| Browser automation    | `agent-browser`                    | `https://www.skills.sh/?q=agent-browser`                    | Useful for testing web workflows and UI behavior.                            |
+| Browser use           | `browser-use`                      | `https://www.skills.sh/?q=browser-use`                      | Useful for agent-assisted browser testing or automation.                     |
+| MCP / tools           | `mcp-builder`                      | `https://www.skills.sh/?q=mcp-builder`                      | Useful if you later expose tools for AI agents.                              |
+| Custom skill creation | `skill-creator`                    | `https://www.skills.sh/?q=skill-creator`                    | Useful to create your own project-specific skills.                           |
+| Write custom skill    | `write-a-skill`                    | `https://www.skills.sh/?q=write-a-skill`                    | Useful for building internal skills like Repo Agent, PR Agent, QA Agent.     |
