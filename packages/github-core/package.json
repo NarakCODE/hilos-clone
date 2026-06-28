@@ -1,0 +1,16 @@
+{
+  "name": "@acw/github-core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "GitHub App authentication, Octokit helpers, and webhook event mapping",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "clean": "tsc -b --clean"
+  },
+  "dependencies": {
+    "@acw/shared": "workspace:*"
+  }
+}

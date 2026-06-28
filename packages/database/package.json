@@ -1,0 +1,31 @@
+{
+  "name": "@acw/database",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Prisma schema, generated client, and migrations",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "clean": "tsc -b --clean",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:diff": "prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script",
+    "db:format": "prisma format",
+    "db:validate": "prisma validate",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@acw/shared": "workspace:*",
+    "@prisma/client": "6.19.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.4",
+    "prisma": "6.19.3"
+  }
+}

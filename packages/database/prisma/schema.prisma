@@ -1,0 +1,341 @@
+// AI Collaboration Workspace - Prisma schema (packages/database)
+//
+// Source of truth for the relational data model. Mirrors the "Data Models"
+// section of .kiro/specs/ai-collaboration-workspace/design.md.
+//
+// Conventions (per design "Data Models"):
+//   - Identifiers are UUIDs: `@id @default(uuid())`.
+//   - Timestamps are `timestamptz` via `@db.Timestamptz(6)`.
+//   - Soft deletes use a nullable `deletedAt` column (e.g. Message).
+//
+// The generated client is emitted to the default location (node_modules/.prisma
+// and re-exported via @prisma/client) so it can be imported by packages/database
+// and reused by apps/api and apps/worker. See src/index.ts.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Users (Req 1)
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String? // null for GitHub-only accounts
+  name         String
+  avatarUrl    String?
+  githubUserId String?  @unique
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(6)
+}
+
+// ---------------------------------------------------------------------------
+// Workspaces and membership (Req 2, 3)
+// ---------------------------------------------------------------------------
+
+model Workspace {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  avatarUrl String?
+  createdBy String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+enum MemberStatus {
+  PENDING
+  ACTIVE
+  REMOVED
+}
+
+model WorkspaceMember {
+  id              String        @id @default(uuid())
+  workspaceId     String
+  userId          String? // null until a pending invite is accepted
+  invitedEmail    String?
+  role            WorkspaceRole
+  status          MemberStatus
+  inviteToken     String?       @unique
+  inviteExpiresAt DateTime?     @db.Timestamptz(6)
+  joinedAt        DateTime?     @db.Timestamptz(6)
+  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime      @updatedAt @db.Timestamptz(6)
+
+  // Prevent duplicate membership for a known user (Req 3.3). A partial unique
+  // index on pending invites (workspaceId, invitedEmail) is added in the
+  // migration SQL since Prisma cannot express partial unique indexes natively.
+  @@unique([workspaceId, userId])
+  @@index([workspaceId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Rooms (Req 4)
+// ---------------------------------------------------------------------------
+
+enum RoomType {
+  GENERAL
+  REPOSITORY
+  PULL_REQUEST
+  AGENT_TASK
+}
+
+enum RoomStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model Room {
+  id                 String     @id @default(uuid())
+  workspaceId        String
+  githubRepositoryId String?
+  name               String
+  slug               String
+  description        String?
+  type               RoomType
+  status             RoomStatus @default(ACTIVE)
+  createdBy          String
+  createdAt          DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime   @updatedAt @db.Timestamptz(6)
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId, status])
+}
+
+model RoomMember {
+  id       String        @id @default(uuid())
+  roomId   String
+  userId   String
+  role     WorkspaceRole
+  joinedAt DateTime      @default(now()) @db.Timestamptz(6)
+
+  @@unique([roomId, userId])
+}
+
+model RoomAgent {
+  id      String @id @default(uuid())
+  roomId  String
+  agentId String
+
+  @@unique([roomId, agentId])
+}
+
+// ---------------------------------------------------------------------------
+// Messages (Req 5)
+// ---------------------------------------------------------------------------
+
+enum SenderType {
+  USER
+  AGENT
+  SYSTEM
+}
+
+enum ContentType {
+  TEXT
+  MARKDOWN
+  SYSTEM
+  AGENT
+  GITHUB_EVENT
+  AGENT_RUN
+}
+
+model Message {
+  id            String      @id @default(uuid())
+  workspaceId   String
+  roomId        String
+  senderType    SenderType
+  senderUserId  String?
+  senderAgentId String?
+  content       String // <= 4000 chars for user messages
+  contentType   ContentType
+  metadata      Json?
+  editedAt      DateTime?   @db.Timestamptz(6)
+  createdAt     DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime    @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime?   @db.Timestamptz(6)
+
+  // Powers reverse-chronological pagination (Req 5.7, 14.6).
+  @@index([roomId, createdAt])
+}
+
+model MessageMention {
+  id            String     @id @default(uuid())
+  messageId     String
+  mentionedType SenderType // USER or AGENT
+  mentionedId   String
+
+  @@index([messageId])
+}
+
+// ---------------------------------------------------------------------------
+// Agents and agent runs (Req 6, 7)
+// ---------------------------------------------------------------------------
+
+model Agent {
+  id            String   @id @default(uuid())
+  workspaceId   String
+  name          String
+  description   String?
+  type          String
+  status        String
+  modelProvider String
+  modelName     String
+  systemPrompt  String
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @db.Timestamptz(6)
+}
+
+enum AgentRunStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model AgentRun {
+  id              String         @id @default(uuid())
+  workspaceId     String
+  roomId          String
+  agentId         String
+  requestedBy     String
+  sourceMessageId String?
+  status          AgentRunStatus @default(PENDING)
+  taskType        String
+  input           Json
+  output          String? // <= 1,000,000 chars
+  errorMessage    String?
+  startedAt       DateTime?      @db.Timestamptz(6)
+  completedAt     DateTime?      @db.Timestamptz(6)
+  createdAt       DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime       @updatedAt @db.Timestamptz(6)
+
+  @@index([roomId, status])
+}
+
+model AgentRunStep {
+  id         String   @id @default(uuid())
+  agentRunId String
+  sequence   Int
+  label      String
+  detail     Json?
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  // Capped at 500 per run in service logic (Req 7.3).
+  @@index([agentRunId, sequence])
+}
+
+// ---------------------------------------------------------------------------
+// GitHub integration (Req 8, 9, 10)
+// ---------------------------------------------------------------------------
+
+enum InstallationStatus {
+  ACTIVE
+  REVOKED
+}
+
+model GithubInstallation {
+  id             String             @id @default(uuid())
+  workspaceId    String
+  installationId String             @unique
+  accountLogin   String
+  accountType    String
+  status         InstallationStatus @default(ACTIVE)
+  createdAt      DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime           @updatedAt @db.Timestamptz(6)
+}
+
+model GithubRepository {
+  id             String   @id @default(uuid())
+  workspaceId    String
+  installationId String
+  githubRepoId   String
+  owner          String
+  name           String
+  fullName       String
+  private        Boolean
+  defaultBranch  String
+  htmlUrl        String
+  status         String
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(6)
+
+  @@unique([workspaceId, githubRepoId])
+}
+
+model GithubEvent {
+  id           String   @id @default(uuid())
+  workspaceId  String
+  repositoryId String
+  deliveryId   String   @unique // idempotency key (Req 10.8)
+  eventType    String
+  action       String?
+  payload      Json
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([repositoryId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Notifications (Req 13)
+// ---------------------------------------------------------------------------
+
+enum NotificationType {
+  MENTION
+  AGENT_RUN
+  INVITE
+  GITHUB
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String?
+  link      String?
+  metadata  Json?
+  readAt    DateTime?        @db.Timestamptz(6)
+  createdAt DateTime         @default(now()) @db.Timestamptz(6)
+
+  @@index([userId, readAt, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Audit logs (Req 12)
+// ---------------------------------------------------------------------------
+
+enum ActorType {
+  USER
+  AGENT
+  SYSTEM
+}
+
+model AuditLog {
+  id           String    @id @default(uuid())
+  workspaceId  String
+  actorType    ActorType
+  actorUserId  String?
+  actorAgentId String?
+  action       String
+  targetType   String
+  targetId     String?
+  metadata     Json?
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([workspaceId, createdAt])
+}

@@ -1,0 +1,15 @@
+# pnpm workspace for the AI Collaboration Workspace monorepo.
+#
+# Layout (see .kiro/specs/ai-collaboration-workspace/design.md "Monorepo Layout"):
+#   apps/web      -> the existing Next.js frontend (currently kept at ./web)
+#   apps/api      -> NestJS REST API + WebSocket gateway
+#   apps/worker   -> BullMQ workers (agent runner + GitHub webhook processor)
+#   packages/*    -> database (Prisma), shared (types/DTOs/Zod), agent-core, github-core
+#
+# Note: the existing demo app lives at ./web and is tracked as a nested git
+# repository (gitlink). Moving it to apps/web was deemed too risky, so it is
+# registered here in place as a workspace member without changing its behavior.
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "web"
